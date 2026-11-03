@@ -47,7 +47,7 @@ jobs:
             -target DSRemote \
             -sdk iphoneos \
             -configuration Release \
-            -derivedDataPath build \
+            SYMROOT="$(pwd)/build" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -55,8 +55,15 @@ jobs:
 
       - name: 打包成 .ipa
         run: |
+          APP=$(find build -maxdepth 3 -name "DSRemote.app" | head -1)
+          echo "找到 app：$APP"
+          if [ -z "$APP" ]; then
+            echo "❌ 没找到 DSRemote.app，下面是 build 目录："
+            find build -maxdepth 3 -type d | head -30
+            exit 1
+          fi
           mkdir -p out/Payload
-          cp -R build/Build/Products/Release-iphoneos/DSRemote.app out/Payload/
+          cp -R "$APP" out/Payload/
           cd out
           zip -qry DSRemote-unsigned.ipa Payload
           ls -lh DSRemote-unsigned.ipa

@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# 关键：所有命令都在 DSRemote/ 目录里跑
+# 所有命令都在 DSRemote/ 里执行（你的仓库多了一层目录）
 defaults:
   run:
     working-directory: DSRemote
@@ -38,7 +38,7 @@ jobs:
       - name: 生成 Xcode 工程
         run: |
           xcodegen --version
-          xcodegen generate --verbose
+          xcodegen generate
 
       - name: 编译（不签名）
         run: |
@@ -64,6 +64,5 @@ jobs:
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          # 注意：artifact 路径是相对仓库根目录的
           path: DSRemote/out/DSRemote-unsigned.ipa
           retention-days: 30

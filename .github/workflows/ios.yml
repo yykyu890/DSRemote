@@ -13,11 +13,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 先确认仓库结构对不对：project.yml 必须在仓库根目录
+      - name: 检查仓库结构
+        run: |
+          echo "当前目录：$(pwd)"
+          ls -la
+          if [ -f project.yml ]; then
+            echo "✅ 根目录找到 project.yml"
+          else
+            echo "❌ 根目录没有 project.yml，下面是全仓库搜到的位置："
+            find . -name project.yml -not -path '*/.*' || true
+            exit 1
+          fi
+          if [ -d Sources ]; then
+            echo "✅ Sources 目录存在"
+            ls -la Sources
+          else
+            echo "❌ 根目录没有 Sources 目录"
+            exit 1
+          fi
+
       - name: 安装 xcodegen
         run: brew install xcodegen
 
       - name: 生成 Xcode 工程
-        run: xcodegen generate
+        run: |
+          xcodegen --version
+          xcodegen generate --verbose
 
       - name: 编译（不签名，用 target 不依赖 scheme）
         run: |

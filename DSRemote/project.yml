@@ -25,8 +25,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.dsremote.app
         TARGETED_DEVICE_FAMILY: "1"
-        SUPPORTS_MACCATALYST: NO
-        GENERATE_INFOPLIST_FILE: NO
+        SUPPORTS_MACCATALYST: "NO"
+        GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_FILE: Sources/Info.plist
 
 schemes:

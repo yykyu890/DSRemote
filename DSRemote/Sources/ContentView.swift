@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var backend: Backend
     @State private var draft = ""
     @State private var showMotion = false
+    @State private var showSettings = false
     @FocusState private var typing: Bool
 
     var body: some View {
@@ -17,6 +18,9 @@ struct ContentView: View {
                     .padding(.horizontal, 14)
                     .padding(.bottom, 4)
             }
+            if !backend.state.connected {
+                connectHint
+            }
             chat
             quickBar
             inputBar
@@ -27,6 +31,11 @@ struct ContentView: View {
             MotionSheet()
                 .environmentObject(backend)
                 .presentationDetents([.height(380)])
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsSheet()
+                .environmentObject(backend)
+                .presentationDetents([.medium, .large])
         }
     }
 
@@ -43,10 +52,18 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+            }
             Button(action: { backend.estop() }) {
                 Text(backend.state.estop ? "解除" : "急停")
                     .font(.subheadline.bold())
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(backend.state.estop
                                 ? Color.orange
@@ -58,6 +75,29 @@ struct ContentView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(Color(red: 0.14, green: 0.086, blue: 0.157))
+    }
+
+    /// 没连上时给一条明显的引导，避免"打开了但不知道下一步"
+    private var connectHint: some View {
+        Button {
+            showSettings = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "wifi.exclamationmark")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("还没连上电脑").font(.subheadline.bold())
+                    Text(backend.address).font(.caption).opacity(0.9)
+                }
+                Spacer()
+                Text("去设置").font(.caption.bold())
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(Color.orange.opacity(0.18))
+            .foregroundStyle(.orange)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - 聊天
@@ -162,6 +202,77 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(Color(red: 0.14, green: 0.086, blue: 0.157))
+    }
+}
+
+// MARK: - 设置（连哪台电脑）
+
+struct SettingsSheet: View {
+    @EnvironmentObject private var backend: Backend
+    @Environment(\.dismiss) private var dismiss
+    @State private var address = ""
+    @State private var saved = false
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    TextField("192.168.0.103:8080", text: $address)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .font(.body.monospaced())
+                } header: {
+                    Text("电脑地址")
+                } footer: {
+                    Text("电脑上运行 python main.py --mobile 时，终端里会打印这个地址。")
+                }
+
+                Section {
+                    Button {
+                        backend.address = address.trimmingCharacters(in: .whitespaces)
+                        backend.connect()
+                        saved = true
+                        dismiss()
+                    } label: {
+                        Text("保存并连接").frame(maxWidth: .infinity)
+                    }
+                    Button(role: .destructive) {
+                        backend.disconnect()
+                        dismiss()
+                    } label: {
+                        Text("断开").frame(maxWidth: .infinity)
+                    }
+                }
+
+                Section("状态") {
+                    LabeledContent("连接", value: backend.state.connected ? "已连接" : "未连接")
+                    LabeledContent("模式", value: backend.state.mode == "hardware" ? "真机" : "模拟")
+                    LabeledContent("急停", value: backend.state.estop ? "已闭锁" : "正常")
+                    if !backend.errorText.isEmpty {
+                        Text(backend.errorText)
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                }
+
+                Section("连不上时检查") {
+                    Text("① 手机和电脑连同一个 Wi-Fi")
+                    Text("② 手机 Safari 能打开这个地址")
+                    Text("③ Windows 防火墙放行 Python")
+                    Text("④ 第一次打开时允许「本地网络」访问")
+                }
+            }
+            .navigationTitle("设置")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("完成") { dismiss() }
+                }
+            }
+        }
+        .onAppear { address = backend.address }
+        .navigationViewStyle(.stack)
     }
 }
 

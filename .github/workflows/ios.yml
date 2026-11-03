@@ -5,6 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# 关键：所有命令都在 DSRemote/ 目录里跑
+defaults:
+  run:
+    working-directory: DSRemote
+
 jobs:
   build:
     runs-on: macos-15
@@ -13,25 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 先确认仓库结构对不对：project.yml 必须在仓库根目录
       - name: 检查仓库结构
         run: |
-          echo "当前目录：$(pwd)"
+          echo "工作目录：$(pwd)"
           ls -la
-          if [ -f project.yml ]; then
-            echo "✅ 根目录找到 project.yml"
-          else
-            echo "❌ 根目录没有 project.yml，下面是全仓库搜到的位置："
-            find . -name project.yml -not -path '*/.*' || true
+          if [ ! -f project.yml ]; then
+            echo "❌ 这里没有 project.yml"
             exit 1
           fi
-          if [ -d Sources ]; then
-            echo "✅ Sources 目录存在"
-            ls -la Sources
-          else
-            echo "❌ 根目录没有 Sources 目录"
+          if [ ! -d Sources ]; then
+            echo "❌ 这里没有 Sources 目录"
             exit 1
           fi
+          echo "✅ 结构没问题"
 
       - name: 安装 xcodegen
         run: brew install xcodegen
@@ -41,7 +40,7 @@ jobs:
           xcodegen --version
           xcodegen generate --verbose
 
-      - name: 编译（不签名，用 target 不依赖 scheme）
+      - name: 编译（不签名）
         run: |
           xcodebuild \
             -project DSRemote.xcodeproj \
@@ -65,6 +64,6 @@ jobs:
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: DSRemote-unsigned-ipa
-          path: out/DSRemote-unsigned.ipa
+          # 注意：artifact 路径是相对仓库根目录的
+          path: DSRemote/out/DSRemote-unsigned.ipa
           retention-days: 30

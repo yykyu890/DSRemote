@@ -1,0 +1,73 @@
+name: iOS Build
+
+# 推代码或手动点一下就跑；产出未签名 .ipa 供 Sideloadly 自签
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 检查仓库结构
+        run: |
+          echo "工作目录：$(pwd)"
+          ls -la
+          if [ ! -f project.yml ]; then
+            echo "❌ 根目录没有 project.yml"
+            find . -name project.yml -not -path '*/.*' || true
+            exit 1
+          fi
+          if [ ! -d Sources ]; then
+            echo "❌ 根目录没有 Sources 目录"
+            exit 1
+          fi
+          echo "✅ 结构没问题"
+
+      - name: 安装 xcodegen
+        run: brew install xcodegen
+
+      - name: 生成 Xcode 工程
+        run: |
+          xcodegen --version
+          xcodegen generate
+
+      - name: 编译（不签名）
+        run: |
+          xcodebuild \
+            -project DSRemote.xcodeproj \
+            -target DSRemote \
+            -sdk iphoneos \
+            -configuration Release \
+            SYMROOT="$(pwd)/build" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: 打包成 .ipa
+        run: |
+          APP=$(find build -maxdepth 3 -name "DSRemote.app" | head -1)
+          echo "找到 app：$APP"
+          if [ -z "$APP" ]; then
+            echo "❌ 没找到 DSRemote.app，下面是 build 目录："
+            find build -maxdepth 3 -type d | head -30
+            exit 1
+          fi
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cd out
+          zip -qry DSRemote-unsigned.ipa Payload
+          ls -lh DSRemote-unsigned.ipa
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: DSRemote-unsigned-ipa
+          path: out/DSRemote-unsigned.ipa
+          retention-days: 30

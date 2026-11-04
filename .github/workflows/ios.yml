@@ -48,7 +48,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            build
+            build 2>&1 | tee build.log
+
+      - name: 错误摘要（失败时只打印关键行）
+        if: failure()
+        run: |
+          echo "================ 编译错误 ================"
+          if [ -f build.log ]; then
+            grep -n "error:" build.log | head -40 || true
+            echo "================ 上下文 ================"
+            grep -n -A3 "error:" build.log | head -120 || true
+          else
+            echo "没有 build.log"
+          fi
 
       - name: 打包成 .ipa
         run: |

@@ -2,6 +2,12 @@ import Foundation
 import CoreBluetooth
 import Combine
 
+/// 扫到的设备
+struct DiscoveredDevice: Identifiable, Equatable {
+    let id: UUID
+    let name: String
+}
+
 /// 郊狼 3.0 直连：iPhone 当 BLE 中心，每 100ms 发一帧 B0。
 ///
 /// 服务 0x180C，写 0x150A，通知 0x150B。
@@ -10,7 +16,7 @@ import Combine
 @MainActor
 final class CoyoteBLE: NSObject, ObservableObject {
     @Published private(set) var state = CoyoteState()
-    @Published private(set) var found: [(name: String, id: UUID)] = []
+    @Published private(set) var found: [DiscoveredDevice] = []
     @Published private(set) var scanning = false
     @Published private(set) var errorText = ""
 
@@ -188,8 +194,8 @@ extension CoyoteBLE: CBCentralManagerDelegate, CBPeripheralDelegate {
             let isCoyote = name.contains("47L121000")
             if !isCoyote { return }
             if !self.found.contains(where: { $0.id == peripheral.identifier }) {
-                self.found.append((name: name.isEmpty ? "未命名" : name,
-                                   id: peripheral.identifier))
+                self.found.append(DiscoveredDevice(id: peripheral.identifier,
+                                                   name: name.isEmpty ? "未命名" : name))
                 self.discovered[peripheral.identifier] = peripheral
             }
         }

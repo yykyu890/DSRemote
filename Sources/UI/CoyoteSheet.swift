@@ -26,7 +26,7 @@ struct CoyoteSheet: View {
                         Button(coyote.scanning ? "扫描中…" : "扫描郊狼") {
                             coyote.startScan()
                         }
-                        ForEach(coyote.found, id: \.id) { device in
+                        ForEach(coyote.found) { device in
                             Button {
                                 coyote.connect(device.id)
                             } label: {

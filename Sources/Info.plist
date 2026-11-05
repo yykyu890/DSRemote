@@ -7,13 +7,13 @@
 	<key>CFBundleDisplayName</key>
 	<string>她的节奏</string>
 	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
+	<string>DSRemote</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>com.dsremote.app</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>DSRemote</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -22,21 +22,6 @@
 	<string>2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>需要蓝牙连接郊狼设备</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>需要蓝牙连接郊狼设备</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>需要连接你电脑上的控制服务（只有 OSR 动作需要）</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>语音输入需要麦克风</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>选一张图来生成游戏规则</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -48,5 +33,20 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>需要连接你电脑上的控制服务（只有 OSR 动作需要）</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>语音输入需要麦克风</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>需要蓝牙连接郊狼设备</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>需要蓝牙连接郊狼设备</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>选一张图来生成游戏规则</string>
 </dict>
 </plist>

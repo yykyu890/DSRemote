@@ -29,6 +29,18 @@ jobs:
           fi
           echo "✅ 结构没问题"
 
+      - name: 源文件清单
+        run: |
+          echo "===== 根目录 ====="
+          ls -la
+          COUNT=$(find . -name "*.swift" -not -path "./.git/*" | wc -l | tr -d " ")
+          echo "===== swift 文件数：$COUNT ====="
+          find . -name "*.swift" -not -path "./.git/*" | sort | head -40
+          echo "===== Sources 目录 ====="
+          ls -la Sources || echo "根目录没有 Sources"
+          echo "===== project.yml 的 sources 段 ====="
+          grep -A4 "sources:" project.yml || true
+
       - name: 安装 xcodegen
         run: brew install xcodegen
 
@@ -36,6 +48,14 @@ jobs:
         run: |
           xcodegen --version
           xcodegen generate
+          echo "pbxproj 引用的 swift 文件数：$(grep -c '\.swift' DSRemote.xcodeproj/project.pbxproj || true)"
+          echo "pbxproj 里的 Sources 组："
+          grep -o '[A-Za-z_]*\.swift' DSRemote.xcodeproj/project.pbxproj | sort -u | head -20 || true
+
+      - name: 构建设置
+        run: |
+          xcodebuild -project DSRemote.xcodeproj -target DSRemote -showBuildSettings 2>/dev/null \
+            | grep -E "PRODUCT_NAME|EXECUTABLE_NAME|MACH_O_TYPE|SDKROOT|SUPPORTED_PLATFORMS|ARCHS" || true
 
       - name: 编译（不签名）
         run: |

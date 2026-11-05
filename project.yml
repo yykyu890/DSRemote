@@ -17,17 +17,21 @@ targets:
   DSRemote:
     type: application
     platform: iOS
+    # 显式列出源文件，避免目录匹配不到导致"空 target"
     sources:
-      - path: Sources
-        excludes:
-          - Info.plist
+      - Sources/DSRemoteApp.swift
+      - Sources/Core
+      - Sources/UI
     settings:
       base:
+        PRODUCT_NAME: DSRemote
         PRODUCT_BUNDLE_IDENTIFIER: com.dsremote.app
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: "NO"
         GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_FILE: Sources/Info.plist
+        MACH_O_TYPE: mh_execute
+        ENABLE_BITCODE: "NO"
 
 schemes:
   DSRemote:

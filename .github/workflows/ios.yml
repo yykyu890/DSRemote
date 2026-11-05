@@ -49,8 +49,17 @@ jobs:
           xcodegen --version
           xcodegen generate
           echo "pbxproj 引用的 swift 文件数：$(grep -c '\.swift' DSRemote.xcodeproj/project.pbxproj || true)"
-          echo "pbxproj 里的 Sources 组："
-          grep -o '[A-Za-z_]*\.swift' DSRemote.xcodeproj/project.pbxproj | sort -u | head -20 || true
+          SWIFT_COUNT=$(grep -c '\.swift' DSRemote.xcodeproj/project.pbxproj || true)
+          if [ "$SWIFT_COUNT" -lt 5 ]; then
+            echo "❌ 工程里几乎没有源文件（$SWIFT_COUNT 个引用），说明 sources 没匹配到"
+            echo "--- 仓库里实际有哪些 swift ---"
+            find . -name "*.swift" -not -path "./.git/*" | sort | head -30
+            echo "--- Sources 目录内容 ---"
+            ls -la Sources || true
+            ls -la Sources/Core || true
+            ls -la Sources/UI || true
+            exit 1
+          fi
 
       - name: 构建设置
         run: |
